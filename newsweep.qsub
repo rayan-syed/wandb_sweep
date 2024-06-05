@@ -1,0 +1,15 @@
+#!/bin/bash -l
+
+# Specify the project and resource allocation
+#$ -P tianlabdl
+#$ -l h_rt=1:00:00
+#$ -j y
+#$ -t 1-20  # Array job: 20 tasks/nodes
+
+# Load the required Python module and activate the virtual environment
+module load python3/3.10.12
+source .venv/bin/activate
+
+# Run the Python script to initialize the sweep and start agents
+python3 newsweep.py
+
