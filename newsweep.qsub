@@ -10,6 +10,8 @@
 module load python3/3.10.12
 source .venv/bin/activate
 
-# Run the Python script to initialize the sweep and start agents
-python3 newsweep.py
+# Run Python script to init sweep and print id, capture that id (last line - tail)
+id=$(python3 sweep.py | tail -n 1)
 
+# Start sweep with agent with previously captured id
+wandb agent --count 1 cisl-bu/sweep_example/$id

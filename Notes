@@ -6,3 +6,8 @@ pip install -r requirements.txt
 wandb login
 
 chmod +x ./sweep.sh
+
+sweep.sh -> submits job by starting sweep.qsub and creates log file in log folder
+sweep.py -> init sweep and print id to stdout
+newsweep.py -> model being sweeped
+newsweep.qsub -> gets sweep id from sweep.py, starts agent to run sweep

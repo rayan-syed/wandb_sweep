@@ -6,4 +6,4 @@ random_suffix=$(($RANDOM % 1000))  # Generates a random number between 0 and 999
 
 jobname="wandb_tutorial_${timestamp}_${random_suffix}"
 
-qsub -N "${jobname}" -o "/projectnb/tianlabdl/rsyed/wandb_tutorial/logs/${jobname}.qlog" "newsweep.qsub"
+qsub -N "${jobname}" -o "/projectnb/tianlabdl/rsyed/wandb_sweep/logs/${jobname}.qlog" "newsweep.qsub"
