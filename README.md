@@ -58,7 +58,7 @@ qsub run.qsub
 ```
 otherwise you will be process-reaped by running it in the SCC login node.
 
-Modify the paths, and requested resources accordingly. `qsub` options for requesting resources and batch scripts examples may be found [here](https://www.bu.edu/tech/support/research/system-usage/running-jobs/submitting-jobs/). I write a bit more on qsub scripts in the following section. 
+Modify the paths, and requested resources accordingly. `qsub` options for requesting resources and batch scripts examples may be found [here](https://www.bu.edu/tech/support/research/system-usage/running-jobs/submitting-jobs/). More on qsub scripts is explained in the following section. 
 
 ## Hyperparameter search: `wandb.sweep`
 `wandb`'s [sweep](https://docs.wandb.ai/guides/sweeps) functionality enables organized and easy experimentation. You simply need to make a configuration file that describes the parameters of the experiment. Then a Sweep Controller handles all the experiment tracking on the backend, that, from the user-side you only need to instantiate Sweep Agents with the same SweepID, without ever worrying about which configuration of parameters you're running.
