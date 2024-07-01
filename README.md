@@ -1,10 +1,12 @@
 # `wandb` in the cluster
+This README file is adapted from https://github.com/bu-cisl/wandb_tutorial
+
 This is a tutorial/template for Boston University researchers who have SCC projects to integrate [`wandb`](https://wandb.ai/site) in their ML stack with the [Boston University Shared Computing Cluster (SCC)](https://www.bu.edu/tech/support/research/computing-resources/scc/), the batch system of which is based on the [Sun Grid Engine](https://gridscheduler.sourceforge.net/) (SGE) scheduler. While you can use wandb on a personal workstation, wandb's benefits really shine through in a cloud computing setting, particularly `wandb sweep` + SGE array jobs for convenient distributed experimentation and tracking. Therefore, this is more a tutorial/example for wandb + SCC integration, rather than a tutorial on `wandb` -- you can find the latter in abundance online.
 
 ## Installing `wandb` and others
 Begin by cloning this repository in your SCC project folder. Having SSH'ed already into the SCC login node, navigate to the folder in which you want to install this repository, and do
 ```
-git clone https://github.com/bu-cisl/wandb_tutorial.git
+git clone https://github.com/rayan-syed/wandb_sweep
 ```
 
 Now, create a virtual environment in that repo/folder. In the terminal, first `cd` into the repo and proceed with
