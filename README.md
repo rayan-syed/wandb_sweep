@@ -47,7 +47,7 @@ The [`/scratch` folder on the SCC](https://www.bu.edu/tech/support/research/syst
 [source](https://community.wandb.ai/t/wandb-artifact-cache-directory-fills-up-the-home-directory/5224)
 
 ## Basic `wandb`
-I provided a basic sample of how to use the basic features of `wandb`, which are `wandb.log()` and `wandb.watch()` in `basic_train.py`. This allows you to monitor training, and even visualize the tensors themselves as the evolve throughout training! It is all there in `basic_train.py`.
+https://github.com/bu-cisl/wandb_tutorial provides a basic sample of how to use the basic features of `wandb`, which are `wandb.log()` and `wandb.watch()` in `basic_train.py`. This allows you to monitor training, and even visualize the tensors themselves as the evolve throughout training! It is all there in `basic_train.py`.
 
 You may define the project name and entity (entity is either the `wandb` team name which is `cisl-bu`, or your `wandb` username) in the config `dict` in `basic_train.py`
 Without the `entity` field, it will default to your wandb `username` and without the `project` field, it will default to "Uncategorized." 
@@ -63,31 +63,32 @@ Modify the paths, and requested resources accordingly. `qsub` options for reques
 ## Hyperparameter search: `wandb.sweep`
 `wandb`'s [sweep](https://docs.wandb.ai/guides/sweeps) functionality enables organized and easy experimentation. You simply need to make a configuration file that describes the parameters of the experiment. Then a Sweep Controller handles all the experiment tracking on the backend, that, from the user-side you only need to instantiate Sweep Agents with the same SweepID, without ever worrying about which configuration of parameters you're running.
 
-I provided a simple template for running hyperparameter search on batch jobs on the SCC, the relevant files are `sweep.yaml`, `sweep.qsub`, `sweep.sh` and `sweep_train.py`. 
+This repo strives to automate this whole process so that the sweep can be initiated and started by running the sweep.sh file.
 
-First, define your configuration parameters in `sweep.yaml`. Information on the structure of the file can be found [here](https://docs.wandb.ai/guides/sweeps/define-sweep-configuration). You may then instantiate a `sweep` in the CLI with
-```
-wandb sweep --project <project_name> --entity <entity_name> sweep.yaml
-```
-which will print out the `sweep_id` you need to run the hyperparameter search. It looks like this:
-![wandb sweep](assets/wandb_sweep.png)
+A simple template for running hyperparameter search on batch jobs on the SCC is provided here, the relevant files are `sweep.yaml`, `sweep.qsub`, `sweep.sh` and `sweep.py`. 
 
-You'll then take the given command for deploying a Sweep Agent, `wandb agent cisl-bu/sweep_example/lkjlh4uf` in this example, and copy it into the last line of `sweep.qsub` but add the option `--count 1`, to make sure that that batch job runs only one run to ensure that all jobs can complete within the time limit defined by `h_rt`. This qsub script is written to request multiple compute nodes on which to start and deploy a Sweep Agent using the `-t` flag for array jobs.
+First, define your configuration parameters in `sweep.yaml`. Information on the structure of the file can be found [here](https://docs.wandb.ai/guides/sweeps/define-sweep-configuration). 
+
+./sweep.sh can then be run. sweep.sh submits a job via sweep.qsub after initializing the sweep, saving the ID, and passing it to the qsub file automatically without any user input. This will be explained after a quick explanation on the qsub file.
+
+This qsub script is written to request multiple compute nodes on which to start and deploy a Sweep Agent using the `-t` flag for array jobs. The qsub file includes --count 1 when calling wandb agent to make sure that that batch job runs only one run to ensure that all jobs can complete within the time limit defined by h_rt. If requested nodes exceeds required runs for the sweep to complete, the excess nodes will be automatically exited by the SCC.
 
 The `qsub` script looks like this
 ```
 #!/bin/bash -l
 
+# Specify the project and resource allocation
 #$ -P tianlabdl
-
 #$ -l h_rt=1:00:00
+#$ -j y
+#$ -t 1-20  # Array job: 20 tasks/nodes
 
-# array jobs to define number of nodes/sweep agents to use on the SCC
-#$ -t 1-20
-
+# Load the required Python module and activate the virtual environment
 module load python3/3.10.12
-source activate .venv/bin/activate
-wandb agent --count 1 cisl-bu/sweep_tutorial/lkjlh4uf
+source .venv/bin/activate
+
+# Start sweep with agent with previously captured id
+wandb agent --count 1 cisl-bu/sweep_example/$SWEEP_ID
 ```
 We first define our SCC project, the job time limit, `N` SCC compute nodes to use (how many agents to run) from `1-N`. Then we just load the python module, activate the virtual environment and call the agent for that sweep_id! 
 
@@ -123,12 +124,15 @@ The example qsub script would then look like this:
 #$ -l gpu_c=8.0
 #$ -l gpu_memory=48G
 
+# Load the required Python module and activate the virtual environment
 module load python3/3.10.12
-source activate .venv/bin/activate
-wandb agent --count 1 cisl-bu/sweep_tutorial/lkjlh4uf
+source .venv/bin/activate
+
+# Start sweep with agent with previously captured id
+wandb agent --count 1 cisl-bu/sweep_example/$SWEEP_ID
 ```
 
-I wrote a shell script `sweep.sh` which is a wrapper for the qsub batch script, just for ease of logging output and errors. This is the file that you will ultimately run in the login node by entering in the terminal:
+`sweep.sh` acts as a wrapper for the qsub batch script for ease of logging output and errors. It is necessary for automating the wandb sweep process, as it calls the python script id.py which initializes the sweep and also captures the output ID, passing it to the qsub file. This is the file that you will ultimately run in the login node by entering in the terminal:
 ```
 ./sweep.sh
 ```
@@ -146,13 +150,9 @@ You can monitor the array batch job with `qstat -u <scc username>` and if you wa
 watch -n 1 "qstat -u <scc username>"
 ```
 
-The wandb sweep controller runs until you stop it which you can do on the wandb.ai sweeps project webpage, or in the terminal with the command
-```
-wandb sweep --cancel cisl-bu/sweep_example/lkjlh4uf
-```
-for example.
+The wandb sweep controller runs until you stop it which you can do on the wandb.ai sweeps project webpage.
 
-If you decide to stop the runs, you may either cancel the sweep like above or with the batch system command 
+If you decide to stop the runs, you may either cancel the sweep as explained above or with the batch system command:
 ```
 qdel <JOBID>
 ```
@@ -161,5 +161,3 @@ qdel <JOBID>
 `wandb.sweep` is very flexible, you may search over more parameters than just typical ML hyperparameters. Get creative! Research! But also be wary that larger number of parameters to search over will require more runs, which could take a while on the SCC since we have a limited number of GPUs (for now).
 
 Otherwise, happy ML training!
-## Contributions
-This repo is by no means a complete tutorial. What I have currently is just a fraction of wandb capabilities. If you're enjoying another wandb feature, I encourage you to make a PR for this repo with your own tutorial! And if there are any errors/mistakes/questions/comments, please let me know at jalido@bu.edu :)
