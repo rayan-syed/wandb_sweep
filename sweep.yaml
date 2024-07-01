@@ -1,11 +1,12 @@
-program: newsweep.py
-method: random # random, grid, bayes, hyperband 
+program: sweep.py
+method: grid # random, grid, bayes, hyperband 
 metric:
   name: loss
   goal: minimize
 parameters:
   learning_rate:
-    min: 0.00001
-    max: 0.01
+    value: .0001 
+          # min: 0.00001
+          # max: 0.01
   batch_size:
     values: [16, 32, 64]
